@@ -1,0 +1,33 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+/src/generated/prisma
+# Build output
+dist/
+
+# AI/editor tooling
+.claude/
+.agents/
+.windsurf/
+
+# Environment
+.env
+.env.*
+!.env.examplenode_modules/
+
+# Keep environment variables out of version control
+.env
+.env.*
+
+!.env.example
+
+/src/generated/prisma
+
+# Build output
+dist/
+
+# AI/editor tooling
+.claude/
+.agents/
+.windsurf/
