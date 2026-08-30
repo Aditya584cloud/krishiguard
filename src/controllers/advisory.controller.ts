@@ -9,7 +9,8 @@ export const advisoryController = async (request: FastifyRequest, reply: Fastify
   if (!parsed.success) {
     return reply.status(400).send({
       success: false,
-      error: parsed.error.message,
+      error: "Invalid request data",
+      details: parsed.error.flatten(),
     });
   }
 

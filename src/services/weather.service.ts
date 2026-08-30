@@ -38,7 +38,9 @@ export async function getCurrentWeather(latitude: number, longitude: number): Pr
 
   url.searchParams.set("timezone", "auto");
 
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(8000),
+  });
 
   if (!response.ok) {
     throw new Error(
@@ -47,6 +49,10 @@ export async function getCurrentWeather(latitude: number, longitude: number): Pr
   }
 
   const data = (await response.json()) as OpenMeteoResponse;
+
+  if (!data.current) {
+    throw new Error("Weather API returned an unexpected response");
+  }
 
   const weather: WeatherData = {
       latitude: data.latitude,
@@ -67,7 +73,8 @@ export async function getCurrentWeather(latitude: number, longitude: number): Pr
       observedAt: data.current.time,
     };
 
-  await prisma.weatherObservation.create({
+  try {
+    await prisma.weatherObservation.create({
       data: {
         latitude: weather.latitude,
         longitude: weather.longitude,
@@ -86,7 +93,11 @@ export async function getCurrentWeather(latitude: number, longitude: number): Pr
 
         observedAt: new Date(weather.observedAt),
       },
-  });
+    });
+  }
+  catch (error) {
+    console.error("Failed to log weather observation:", error);
+  }
 
   return weather;
 }

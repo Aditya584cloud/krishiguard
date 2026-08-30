@@ -58,7 +58,9 @@ export const getMarketComparison = async (data: MarketPriceInput) => {
       data.crop,
     );
 
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(8000),
+    });
 
     if (!response.ok) {
       throw new Error(

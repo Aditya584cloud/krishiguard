@@ -9,7 +9,8 @@ export const marketController = async (request: FastifyRequest, reply: FastifyRe
   if (!parsed.success) {
     return reply.status(400).send({
       success: false,
-      error: parsed.error.message,
+      error: "Invalid request data",
+      details: parsed.error.flatten(),
     });
   }
 

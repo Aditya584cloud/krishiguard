@@ -47,28 +47,48 @@ export const createFarmerController = async (request: FastifyRequest, reply: Fas
 };
 
 export const getFarmersController = async (_request: FastifyRequest, reply: FastifyReply) => {
-  const farmers = await getFarmers();
+  try {
+    const farmers = await getFarmers();
 
-  return reply.send({
-    success: true,
-    data: farmers,
-  });
+    return reply.send({
+      success: true,
+      data: farmers,
+    });
+  }
+  catch (error) {
+    console.error("Get farmers error:", error);
+
+    return reply.status(500).send({
+      success: false,
+      error: "Unable to fetch farmers",
+    });
+  }
 };
 
 export const getFarmerController = async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
-  const farmer = await getFarmerById(request.params.id);
+  try {
+    const farmer = await getFarmerById(request.params.id);
 
-  if (!farmer) {
-    return reply.status(404).send({
-      success: false,
-      error: "Farmer not found",
+    if (!farmer) {
+      return reply.status(404).send({
+        success: false,
+        error: "Farmer not found",
+      });
+    }
+
+    return reply.send({
+      success: true,
+      data: farmer,
     });
   }
+  catch (error) {
+    console.error("Get farmer error:", error);
 
-  return reply.send({
-    success: true,
-    data: farmer,
-  });
+    return reply.status(500).send({
+      success: false,
+      error: "Unable to fetch farmer",
+    });
+  }
 };
 
 export const getFarmerWeatherController = async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
