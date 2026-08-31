@@ -12,6 +12,7 @@ import { weatherRoutes } from "./routes/weather.routes.js";
 import { advisoryRoutes } from "./routes/advisory.routes.js";
 import { distressRoutes } from "./routes/distress.routes.js";
 import { marketRoutes } from "./routes/market.routes.js";
+import { adminRoutes } from "./routes/admin.routes.js"; // TEMPORARY — see admin.routes.ts
 
 const app = Fastify({logger: true});
 
@@ -29,5 +30,6 @@ await app.register(weatherRoutes, {prefix: "/api"});
 await app.register(advisoryRoutes, {prefix: "/api"});
 await app.register(distressRoutes, {prefix: "/api"});
 await app.register(marketRoutes, { prefix: "/api" });
+await app.register(adminRoutes, { prefix: "/api" }); // TEMPORARY — see admin.routes.ts
 
 export default app;
