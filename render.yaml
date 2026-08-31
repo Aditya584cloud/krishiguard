@@ -1,0 +1,31 @@
+databases:
+  - name: krishiguard-db
+    databaseName: krishiguard
+    user: krishiguard
+    plan: free
+
+services:
+  - type: web
+    name: krishiguard-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: krishiguard-db
+          property: connectionString
+      # Set manually in the Render dashboard after the blueprint is applied
+      # (never committed to git):
+      - key: DATA_GOV_API_KEY
+        sync: false
+      # Comma-separated list of allowed origins, e.g.
+      # https://krishiguard.vercel.app,https://localhost
+      # (https://localhost is the Capacitor Android app's WebView origin)
+      - key: CORS_ORIGIN
+        sync: false
