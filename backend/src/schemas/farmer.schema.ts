@@ -23,7 +23,6 @@ export const createFarmerSchema = z
     soilType: z.enum(SOIL_TYPES),
 
     hasActiveLoan: z.boolean().default(false),
-    // ISO date string (e.g. "2026-09-05"), required when hasActiveLoan is true.
     loanDueDate: z.string().date().optional(),
     loanAmountRupees: z.number().positive().optional(),
   })

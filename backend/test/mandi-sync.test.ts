@@ -4,10 +4,6 @@ import { prisma } from "./helpers.js";
 import { syncMandiPrices } from "../src/services/mandi-sync.service.js";
 import { runSyncSafely } from "../src/services/mandi-scheduler.js";
 
-// These tests stub globalThis.fetch to keep the suite fast and deterministic
-// (the real data.gov.in sync fetches ~10k records over ~11 pages — see the
-// manual real-API verification described in FINAL_AUDIT.md instead).
-
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -91,10 +87,8 @@ test("pagination requests limit=1000 at offsets 0, 1000, 2000... and stops on a 
     requestedLimits.push(limit);
 
     if (offset === 0) {
-      // A full page (== requested limit) — pagination must continue.
       return jsonResponse({ records: Array.from({ length: 1000 }, (_, i) => makeRecord(i)) });
     }
-    // A short page (< requested limit) — pagination must stop here.
     return jsonResponse({ records: [makeRecord(1000), makeRecord(1001)] });
   }) as typeof fetch;
 
@@ -119,9 +113,6 @@ test("pagination continues well past 10 pages — no arbitrary page-count cap", 
   const originalFetch = globalThis.fetch;
   let calls = 0;
 
-  // Records are deliberately malformed (missing `state`) so every one is
-  // skipped without a real Prisma upsert — this keeps a 13-page test fast
-  // while still exercising the exact same pagination/counting loop.
   const malformedRecord = () => ({
     district: TEST_DISTRICT,
     market: TEST_MARKET,
@@ -134,7 +125,6 @@ test("pagination continues well past 10 pages — no arbitrary page-count cap", 
 
   globalThis.fetch = (async () => {
     calls += 1;
-    // Pages 1-12 are full (1000 records); page 13 is short (500), ending pagination.
     const length = calls <= 12 ? 1000 : 500;
     return jsonResponse({ records: Array.from({ length }, malformedRecord) });
   }) as typeof fetch;
@@ -271,7 +261,6 @@ test("a malformed record is skipped without failing the whole synchronization", 
           modal_price: 1100,
         },
         {
-          // Malformed: missing commodity and a non-numeric price.
           state: TEST_STATE,
           district: TEST_DISTRICT,
           market: "Broken Market",
@@ -302,10 +291,6 @@ test("scheduler's safety wrapper never throws, even when the sync itself fails",
   globalThis.fetch = (async () => new Response("boom", { status: 500 })) as typeof fetch;
 
   try {
-    // syncMandiPrices catches all of its own errors and returns a result
-    // object rather than throwing (by design), so this exercises the
-    // scheduler's defensive wrapper end-to-end against a real failure mode:
-    // it must resolve cleanly no matter what the sync reports.
     await assert.doesNotReject(() => runSyncSafely());
   } finally {
     globalThis.fetch = originalFetch;

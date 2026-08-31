@@ -14,14 +14,14 @@ CREATE TABLE "MandiPrice" (
     CONSTRAINT "MandiPrice_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
+--CreateIndex
 CREATE INDEX "MandiPrice_state_commodity_idx" ON "MandiPrice"("state", "commodity");
 
--- CreateIndex
+--CreateIndex
 CREATE INDEX "MandiPrice_state_district_commodity_idx" ON "MandiPrice"("state", "district", "commodity");
 
--- CreateIndex
+--CreateIndex
 CREATE INDEX "MandiPrice_arrivalDate_idx" ON "MandiPrice"("arrivalDate");
 
--- CreateIndex
+--CreateIndex
 CREATE UNIQUE INDEX "MandiPrice_state_district_market_commodity_arrivalDate_key" ON "MandiPrice"("state", "district", "market", "commodity", "arrivalDate");

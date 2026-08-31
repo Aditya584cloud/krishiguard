@@ -39,8 +39,6 @@ export const marketController = async (request: FastifyRequest, reply: FastifyRe
       });
     }
 
-    // Remaining failures at this point are upstream mandi-API problems
-    // (timeout, non-OK status, network failure) — a 502, not a generic 500.
     return reply.status(502).send({
       success: false,
       error: "Unable to fetch market data — the mandi price service is currently unavailable.",

@@ -21,7 +21,6 @@ export const getDistressRisk = async (data: DistressInput) => {
     throw new Error("Farmer not found");
   }
 
-  // --- Rainfall signal (derived, real Open-Meteo data when coordinates exist) ---
   let rainfallDeviationPercent: number | null = null;
   let rainfallSource: string;
   let rainfallNote: string;
@@ -39,7 +38,6 @@ export const getDistressRisk = async (data: DistressInput) => {
         : `A real historical baseline could not be obtained; using an explicitly labeled demo baseline (${signal.baselineMm}mm / ${signal.windowDays} days).`;
   }
 
-  // --- Market signal (derived from real data.gov.in mandi records) ---
   let priceChangePercent: number | null = null;
   let marketSource: string;
   let marketNote: string;
@@ -61,7 +59,6 @@ export const getDistressRisk = async (data: DistressInput) => {
     marketNote = `Market signal unavailable: ${error instanceof Error ? error.message : "unknown error"}.`;
   }
 
-  // --- Financial signal (from the farmer's own financial profile — demo data) ---
   const loanProximityDays =
     farmer.hasActiveLoan && farmer.loanDueDate
       ? daysUntil(farmer.loanDueDate)

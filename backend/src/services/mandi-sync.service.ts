@@ -3,31 +3,10 @@ import { prisma } from "../lib/prisma.js";
 const MANDI_API_URL =
   "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070";
 
-// Pagination contract, verified directly against the live API before
-// implementing this: offset=0 and offset=1000 return genuinely different
-// records (confirmed manually — the API honors `offset`, this isn't a
-// no-op). Pages are always requested at the full PAGE_SIZE; pagination
-// continues until a page returns FEWER records than requested — never
-// stopping at an arbitrary page count and never assuming the first page is
-// the complete dataset.
 const PAGE_SIZE = 1000;
 const REQUEST_TIMEOUT_MS = 15000;
 
-// Pure runaway-loop guard (not a truncation boundary, and nowhere near the
-// real dataset size for this resource — do not lower this to "arbitrarily
-// stop early"). If the API is somehow buggy and always returns exactly
-// PAGE_SIZE records forever, this still eventually halts the loop.
 const MAX_PAGES = 500;
-
-// NOTE: the underlying Elasticsearch index behind this resource enforces a
-// hard `index.max_result_window` of 10000 — requesting offset + limit
-// beyond that returns an HTTP 200 with a search_phase_execution_exception
-// in the body (confirmed directly against the live API), which fails
-// response-shape validation below. This is a genuine, permanent API
-// limitation, not a bug in this sync: when pagination hits it, the sync
-// fails cleanly (logged, previous data untouched) per the "don't silently
-// fall back to partial data" requirement, rather than being special-cased
-// into a fake success.
 
 type MandiRecord = {
   state?: unknown;
@@ -46,7 +25,6 @@ type MandiApiResponse = {
   records?: MandiRecord[];
 };
 
-/** Parses data.gov.in's dd/mm/yyyy arrival date (or a fallback ISO date) into a UTC Date. */
 function parseArrivalDate(value: unknown): Date | null {
   if (typeof value !== "string") return null;
 
@@ -81,7 +59,6 @@ interface ValidatedRecord {
   modalPrice: number;
 }
 
-/** Validates one raw API record. Returns null (and never throws) for a malformed record. */
 function validateRecord(record: MandiRecord): ValidatedRecord | null {
   const state = asNonEmptyString(record.state);
   const district = asNonEmptyString(record.district);
@@ -135,12 +112,6 @@ export interface MandiSyncResult {
   error?: string;
 }
 
-/**
- * Synchronizes the local MandiPrice table from data.gov.in, paginating
- * through the full current dataset. On any failure, previously stored
- * records are left untouched — the table is never wiped, and callers
- * continue serving the last successful snapshot.
- */
 export async function syncMandiPrices(): Promise<MandiSyncResult> {
   const apiKey = process.env.DATA_GOV_API_KEY;
 
@@ -194,9 +165,6 @@ export async function syncMandiPrices(): Promise<MandiSyncResult> {
         upserted += 1;
       }
 
-      // A page shorter than the requested limit means we've reached the end
-      // of the currently available dataset — never assumed after just the
-      // first page, always confirmed by the API itself.
       if (records.length < PAGE_SIZE) break;
 
       offset += PAGE_SIZE;

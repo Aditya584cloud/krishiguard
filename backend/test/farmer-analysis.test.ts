@@ -77,12 +77,6 @@ test("failed refresh preserves the previous successful results and never advance
   const goodTimestamp = first.body.data.lastSuccessAt;
   const goodDistress = first.body.data.distress;
 
-  // Break the one real, reachable failure mode (advisory's weather
-  // dependency) and force staleness so a refresh is actually attempted.
-  // Backdating necessarily changes lastSuccessAt away from `goodTimestamp`
-  // (that's what makes the snapshot stale) — the invariant under test is
-  // that a failed refresh doesn't advance it any further than that, not
-  // that it stays equal to the original success time.
   await prisma.farmer.update({ where: { id: farmer.id }, data: { latitude: null, longitude: null } });
   await backdateSnapshot(farmer.id, 7 * HOUR_MS);
   const staleTimestamp = (await prisma.farmerAnalysis.findUniqueOrThrow({ where: { farmerId: farmer.id } })).lastSuccessAt?.toISOString();
@@ -95,7 +89,6 @@ test("failed refresh preserves the previous successful results and never advance
   assert.equal(second.body.data.lastSuccessAt, staleTimestamp, "a failed refresh must not advance lastSuccessAt at all");
   assert.deepEqual(second.body.data.distress, goodDistress, "previous results must be preserved untouched");
 
-  // Recovery: restore coordinates, confirm a subsequent retry succeeds and clears the error.
   await prisma.farmer.update({ where: { id: farmer.id }, data: { latitude: 20.4625, longitude: 85.8828 } });
   const third = await getAnalysis(farmer.id);
   assert.equal(third.body.data.refreshedNow, true);
@@ -107,11 +100,6 @@ test("failed refresh preserves the previous successful results and never advance
 test("market, advisory and distress are always updated together, never partially", async () => {
   const farmer = await createFarmerDirect({ latitude: 20.4625, longitude: 85.8828 });
   const { body } = await getAnalysis(farmer.id);
-
-  // A coherent refresh means all three came from the same event — the
-  // simplest structural guarantee is that they're either all present
-  // (successful refresh) or the previous complete set is retained; there is
-  // no code path that persists just one or two of the three results.
   const allPresent = body.data.market && body.data.advisory && body.data.distress;
   assert.ok(allPresent, "a successful refresh must produce a complete set of all three results");
 });

@@ -193,8 +193,6 @@ test("other-state fallback: no district/state data prefers a real neighboring st
 });
 
 test("other-state fallback still works for a farmer state with no listed neighbors", async () => {
-  // Delhi is not a key in the static neighbor map — this exercises the
-  // unordered any-state fallback rather than the neighbor-preference path.
   await seedMandiPrice({
     state: "Punjab",
     district: "Ludhiana",

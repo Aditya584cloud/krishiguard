@@ -10,9 +10,6 @@ const start = async () => {
     });
 
     console.log(`KrishiGuard backend running on port ${env.PORT}`);
-
-    // Started here (not app.ts) so the test suite, which imports app.ts
-    // directly, never triggers a real mandi sync against data.gov.in.
     startMandiScheduler();
   }
   catch (error) {

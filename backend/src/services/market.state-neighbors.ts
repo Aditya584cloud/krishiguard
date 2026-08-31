@@ -1,11 +1,3 @@
-// Real, static Indian state-adjacency geography — used only as a soft
-// preference when the other-state market fallback has to pick which
-// non-local records to show first. This is common-knowledge geography, not
-// data derived from mandi prices or coordinates (MandiPrice rows carry no
-// lat/lon), and it never determines *whether* a market is shown — only
-// which real records are tried first. If a farmer's state isn't listed
-// here, the fallback simply queries any other state without a preference,
-// rather than guessing.
 const STATE_NEIGHBORS: Record<string, string[]> = {
   "Andhra Pradesh": ["Telangana", "Odisha", "Chhattisgarh", "Karnataka", "Tamil Nadu"],
   "Arunachal Pradesh": ["Assam", "Nagaland"],

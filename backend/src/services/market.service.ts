@@ -9,9 +9,6 @@ type MarketFarmer = {
   state: string;
 };
 
-// Real markets shown when neither the farmer's district nor their state has
-// any synchronized data for the commodity — capped so a broad cross-state
-// fallback stays a short, genuinely useful list rather than a data dump.
 const OTHER_MARKETS_LIMIT = 10;
 
 export interface MarketPriceSignal {
@@ -34,10 +31,6 @@ export interface MarketPriceSignal {
     lowestPriceMarket: string;
     averagePrice: number;
   } | null;
-  // Derived from the locally synchronized mandi records when they span more
-  // than one arrival date AND represent the farmer's own state (DISTRICT or
-  // STATE scope); null (never fabricated, and never derived from another
-  // state's prices) otherwise.
   priceChangePercent: number | null;
   priceChangeBasis: string | null;
   dataSource: "DATA_GOV_IN";
@@ -122,14 +115,6 @@ async function queryStoredRecords(
   });
 }
 
-/**
- * Real markets for the same commodity outside the farmer's own state, used
- * only when neither the district nor the state has any data. Neighboring
- * states (real, static geography — see market.state-neighbors.ts) are
- * preferred when known; the remaining slots (or all of them, if the
- * farmer's state has no listed neighbors) are filled from any other state.
- * Never fabricated — every returned row is a real synchronized record.
- */
 async function queryOtherStateRecords(
   farmerState: string,
   commodity: string,
@@ -209,9 +194,6 @@ export async function getMarketSignal(
   const averagePrice =
     markets.reduce((sum, item) => sum + item.modalPrice, 0) / markets.length;
 
-  // Cross-state prices are real, but not the farmer's local price context —
-  // never used as a price-change signal (and, by extension, never fed to
-  // the distress model, which only trusts this field when non-null).
   const { priceChangePercent, priceChangeBasis } =
     scope === "OTHER_MARKETS"
       ? { priceChangePercent: null, priceChangeBasis: null }

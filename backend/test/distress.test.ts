@@ -35,8 +35,6 @@ test("client-supplied numeric fields are ignored — the score is fully derived 
     payload: { farmerId: farmer.id },
   });
 
-  // These would previously have been read directly as the risk inputs. They must now be
-  // silently ignored by the schema — the derived score must be identical either way.
   const withBogusInputs = await app.inject({
     method: "POST",
     url: "/api/distress",

@@ -3,14 +3,8 @@ import { prisma } from "../src/lib/prisma.js";
 
 export { app, prisma };
 
-// Reserved prefix so test-created farmers are easy to identify.
 const TEST_PHONE_PREFIX = "9999";
 
-// Each test file runs in its own process under `node --test`, so this
-// module-level array is naturally scoped to the file that imports it — one
-// file's cleanup can never delete another concurrently-running file's
-// fixtures (unlike a shared "delete everything with this phone prefix"
-// query, which raced across files and caused flaky 404s).
 const createdFarmerIds: string[] = [];
 
 export function trackFarmer(id: string): string {
