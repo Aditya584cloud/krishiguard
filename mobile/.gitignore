@@ -1,0 +1,17 @@
+node_modules
+dist
+
+# Environment variables (device/LAN-specific backend URL — not portable across machines)
+.env
+.env.local
+!.env.example
+
+android/app/build
+android/build
+android/.gradle
+android/local.properties
+android/keystore/*.keystore
+android/captures
+ios/App/Pods
+ios/App/App.xcworkspace
+.DS_Store

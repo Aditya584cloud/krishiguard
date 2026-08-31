@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Language {
+  English
+  Odia
+  Hindi
+}
+
+// Broad Indian soil classification used to drive advisory logic
+// (drainage / water-retention behaviour), not a precise soil survey.
+enum SoilType {
+  Alluvial
+  Black
+  Red
+  Laterite
+  Sandy
+  Clay
+  Loamy
+}
+
+model Farmer {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String   @unique
+  language  Language
+  district  String
+  state     String
+  village   String
+  latitude  Float?
+  longitude Float?
+
+  // Agricultural profile — feeds the advisory engine and the market/distress signals.
+  primaryCrop String
+  soilType    SoilType
+
+  // Financial profile — deliberately minimal and explicitly a demo/simulated
+  // context (see README). No real bank or government financial record is
+  // ever accessed. Feeds the distress engine's loan-proximity signal.
+  hasActiveLoan    Boolean   @default(false)
+  loanDueDate      DateTime?
+  loanAmountRupees Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  analysis FarmerAnalysis?
+
+  @@index([state, district])
+}
+
+// Persisted, coherent snapshot of a farmer's Market + Advisory + Distress
+// results, refreshed together as one unit on a 6-hour freshness window (see
+// src/services/farmer-analysis.service.ts). This is what lets the frontend
+// show a farmer's current analysis immediately on revisit — page reload,
+// browser restart, another device — without a manual "Check" click, and
+// without ever mixing a fresh Market result with a stale Distress result:
+// a refresh either updates all three together or updates none of them.
+model FarmerAnalysis {
+  id       String @id @default(uuid())
+  farmerId String @unique
+  farmer   Farmer @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+
+  // Full JSON response bodies — same shape POST /api/market, /api/advisory
+  // and /api/distress already return. Null only before the first-ever
+  // successful refresh for this farmer.
+  marketResult   Json?
+  advisoryResult Json?
+  distressResult Json?
+
+  // The 6-hour freshness window is measured from here — the last time all
+  // three results were successfully recomputed together. Never updated on
+  // a failed refresh attempt, so stale-but-still-valid results are never
+  // discarded because of a transient upstream failure.
+  lastSuccessAt DateTime?
+  // Last time a refresh was attempted at all (success or failure) — purely
+  // observability, not used for freshness logic.
+  lastAttemptAt DateTime?
+  // Non-null only when the most recent refresh attempt failed; cleared on
+  // the next successful refresh. Lets the UI show "Unable to refresh"
+  // alongside the (still valid, still displayed) previous results.
+  lastError String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Locally synchronized snapshot of data.gov.in mandi (market) price records.
+// Populated by the mandi sync scheduler every 2 hours (see
+// src/services/mandi-sync.service.ts) — POST /api/market reads from this
+// table instead of calling data.gov.in on every request.
+model MandiPrice {
+  id          String   @id @default(uuid())
+  state       String
+  district    String
+  market      String
+  commodity   String
+  arrivalDate DateTime
+  minPrice    Float
+  maxPrice    Float
+  modalPrice  Float
+  fetchedAt   DateTime @default(now())
+
+  // One record per government-reported (market, commodity, date) combination —
+  // re-syncing updates prices in place instead of creating duplicates.
+  @@unique([state, district, market, commodity, arrivalDate])
+  @@index([state, commodity])
+  @@index([state, district, commodity])
+  @@index([arrivalDate])
+}
+
+model WeatherObservation {
+  id                   String   @id @default(uuid())
+  latitude             Float
+  longitude            Float
+  temperatureC         Float
+  apparentTemperatureC Float
+  humidityPercent      Float
+  precipitationMm      Float
+  rainMm               Float
+  windSpeedKmh         Float
+  weatherCode          Int
+  observedAt            DateTime
+  createdAt             DateTime @default(now())
+
+  @@index([latitude, longitude, observedAt])
+}

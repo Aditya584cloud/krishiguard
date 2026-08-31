@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: system-ui, "Segoe UI", Roboto, sans-serif;
+
+  --color-soil-50: #f7f5f0;
+  --color-soil-100: #ece7db;
+  --color-soil-200: #ddd5c2;
+  --color-soil-300: #c7bb9d;
+  --color-soil-400: #a89873;
+  --color-soil-500: #8f7d5f;
+  --color-soil-600: #7a6a4f;
+  --color-soil-700: #5f5240;
+  --color-soil-800: #4a3f2d;
+  --color-soil-900: #332a1e;
+
+  --color-leaf-50: #f0f7ee;
+  --color-leaf-100: #dcecd6;
+  --color-leaf-200: #b9d9ae;
+  --color-leaf-500: #4b8a3f;
+  --color-leaf-600: #3c7031;
+  --color-leaf-700: #2f5827;
+  --color-leaf-800: #244420;
+  --color-leaf-900: #1c3517;
+
+  --color-wheat-50: #fdf8ec;
+  --color-wheat-100: #faf3d9;
+  --color-wheat-400: #e0b03e;
+  --color-wheat-600: #b3860f;
+  --color-wheat-700: #8f6b0c;
+
+  --color-sky-50: #f0f7fb;
+  --color-sky-200: #bfe0f0;
+  --color-sky-600: #276a8c;
+
+  --color-danger-50: #fdf1f0;
+  --color-danger-200: #f3c3bd;
+  --color-danger-600: #b8402f;
+  --color-danger-700: #953326;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-soil-50);
+  color: var(--color-soil-800);
+}
+
+#root {
+  min-height: 100svh;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.25s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up {
+    animation: none;
+  }
+}
